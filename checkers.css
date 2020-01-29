@@ -1,0 +1,83 @@
+.chessboard {
+    width: 720px;
+    height: 720px;
+    margin: 1px;
+    border: 2px solid #E08F62;
+    cursor: pointer;
+}
+
+.dark, .light {
+    float: left;
+    width: 90px;
+    height: 90px;
+    font-size:75px;
+    text-align:center;
+    display: table-cell;
+    vertical-align:middle;
+    box-sizing: border-box;
+}
+div.outer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f6f4e6;
+}
+body {
+    background-color: #f6f4e6;
+}
+.dark {
+    background-color: #E08F62;
+}
+
+.light {
+    background-color: #D7C79E;
+}
+div.title {
+    padding: 1px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 20px;
+    text-align: center;
+}
+div.uppertitle {
+    padding: 5px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 30px;
+    text-align: center;
+    color: #A52A2A;
+}
+button.buttonNewGame {
+    background-color: #9dab86;
+    border: none;
+    color:  #4D4646;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+button.buttonNewGame:hover {
+    opacity: 0.9;
+    transition-duration: 03.sec;
+    color:#2d132c;
+}
+div.dark:hover{
+    opacity: 0.92;
+}
+div.light:hover{
+    opacity: 0.90;
+}
+span.lastLine {
+    color:  #4D4646;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.toolSelected {
+	color :#A52A2A;
+}
