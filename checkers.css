@@ -1,6 +1,6 @@
 .chessboard {
-    width: 720px;
-    height: 720px;
+    width: 560px;
+    height: 560px;
     margin: 1px;
     border: 2px solid rgb(112, 99, 88);
     cursor: pointer;
@@ -8,19 +8,23 @@
 
 .darkLayer, .light {
     float: left;
-    width: 90px;
-    height: 90px;
-    font-size:75px;
+    width: 70px;
+    height: 70px;
+    font-size:65px;
     text-align:center;
     display: table-cell;
-    vertical-align:middle;
+    vertical-align: middle;
     box-sizing: border-box;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 .dark {
     display: block;
     margin-left: auto;
     margin-right: auto;
-    padding-top: 7px;
+    text-align:center;
+    display: table-cell;
+    box-sizing: border-box;
 }
 div.outer{
     display: flex;
