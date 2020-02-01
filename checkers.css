@@ -2,11 +2,11 @@
     width: 720px;
     height: 720px;
     margin: 1px;
-    border: 2px solid #E08F62;
+    border: 2px solid rgb(112, 99, 88);
     cursor: pointer;
 }
 
-.dark, .light {
+.darkLayer, .light {
     float: left;
     width: 90px;
     height: 90px;
@@ -15,6 +15,12 @@
     display: table-cell;
     vertical-align:middle;
     box-sizing: border-box;
+}
+.dark {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 7px;
 }
 div.outer{
     display: flex;
@@ -25,8 +31,10 @@ div.outer{
 body {
     background-color: #f6f4e6;
 }
-.dark {
-    background-color: #E08F62;
+.darkLayer {
+    background-color: rgb(112, 99, 88);
+   
+    
 }
 
 .light {
@@ -63,7 +71,7 @@ button.buttonNewGame:hover {
     transition-duration: 03.sec;
     color:#2d132c;
 }
-div.dark:hover{
+div.darkLayer:hover{
     opacity: 0.92;
 }
 div.light:hover{

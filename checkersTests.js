@@ -1,5 +1,3 @@
-
-
 // Variables
 
 let newPositionY, newPositionX, oldPositionY, oldPositionX;
@@ -14,10 +12,11 @@ let isWhiteTurn = true;
 let isLegalMovement = false;
 let idOneInsideJump, idTwoInsideJump, idThreeInsideJump, idFourInsideJump;
 let toolSymbol;
-let whitePawnSymbol = "\u25CE";
-let blackPawnSymbol = "\u25C9";
-let whiteKingToolSymbol = "\u2655";
-let blackKingToolSymbol = "\u265B";
+let whitePawnSymbol = "checkers_PNG17.png";
+let blackPawnSymbol = "toolBlackPng.png";
+let whiteKingToolSymbol = "whiteKing.png";
+let blackKingToolSymbol = "blackKing.png";
+let emptyImage = "Empty.png"
 let isExtraJump = false;
 let selectedTool = document.getElementsByClassName("dark");
 let savedOldPositionY;
@@ -29,42 +28,44 @@ let isToolTaken = false;
 let isExtraForcedJump = false;
 
 //  Running Begins
-
-document.getElementById("chessBoard").addEventListener("click", originalLocationEvent);
+for (var i = 0; i < 64; i++) {
+  document.getElementsByClassName("dark")[i].draggable = "true";
+  document.getElementsByClassName("dark")[i].setAttribute("ondrag", "event.dataTransfer.setData('text/plain',null)");
+}
+document.getElementById("chessBoard").addEventListener("drag", originalLocationEvent);
 
 // event first click
 
 function originalLocationEvent(event) {
   originalLocationId = event.target.id;
-  oldPositionY = event.target.id.slice(1, 2);
-  oldPositionX = event.target.id.slice(2, 3);
+  oldPositionY = parseInt(event.target.id.slice(1, 2));
+  oldPositionX = parseInt(event.target.id.slice(2, 3));
   console.log(oldPositionY);
   console.log(oldPositionX);
-  toolSymbol = event.target.innerText;
+  toolSymbol = event.target.getAttribute("src");
   if (isWhiteTurn && ((toolSymbol == whitePawnSymbol) || (toolSymbol == whiteKingToolSymbol)) ||
     (!isWhiteTurn && ((toolSymbol == blackPawnSymbol) || (toolSymbol == blackKingToolSymbol)))) {
-    removeAllToolSelection();
-    event.target.className = event.target.className + " " + "toolSelected";
-    document.getElementById("chessBoard").removeEventListener("click", originalLocationEvent);
-    document.getElementById("chessBoard").addEventListener("click", destinationEvent);
+    //removeAllToolSelection();
+    //event.target.className = event.target.className + " " + "toolSelected";
+    document.getElementById("chessBoard").removeEventListener("drag", originalLocationEvent);
+    document.getElementById("chessBoard").addEventListener("dragover", destinationEvent);
   }
 }
 
 // event second click
 
 function destinationEvent(event) {
-  newPositionY = event.target.id.slice(1, 2);
-  newPositionX = event.target.id.slice(2, 3);
+  newPositionY = parseInt(event.target.id.slice(1, 2));
+  newPositionX = parseInt(event.target.id.slice(2, 3));
   console.log(newPositionY);
   console.log(newPositionX);
   changeBooleansToFalse();
-  let abc = document.getElementById("a" + oldPositionY + oldPositionX);
-  toolSymbol = abc.innerText;
+  toolSymbol = document.getElementById("a" + oldPositionY + oldPositionX).getAttribute("src");
   checkMovement();
-  if (isLegalMovement && !(newPositionY === oldPositionY && newPositionX === oldPositionX)) {
-    document.getElementById("a" + newPositionY + newPositionX).innerText = toolSymbol;
-    document.getElementById("a" + oldPositionY + oldPositionX).innerText = "";
-    document.getElementById("chessBoard").removeEventListener("click", destinationEvent);
+  if (isLegalMovement/* && !(newPositionY === oldPositionY && newPositionX === oldPositionX)*/) {
+    document.getElementById("a" + newPositionY + newPositionX).setAttribute("src", toolSymbol);
+    document.getElementById("a" + oldPositionY + oldPositionX).setAttribute("src", emptyImage);
+    document.getElementById("chessBoard").removeEventListener("dragover", destinationEvent);
     checkCoronation();
       if (!canAnyToolMove ()) // if the opponent can not move, this is victory
       {
@@ -72,15 +73,19 @@ function destinationEvent(event) {
       }
     cancelAnouncingForcedJump();
     checkToolsNumber();
-    checkExtraForcedJumpAndReact();
+    if (isToolTaken) {
+      checkExtraForcedJumpAndReact();
+    }
     if(!isExtraForcedJump) {
     changePlayerTurn();
-    document.getElementById("chessBoard").addEventListener("click", originalLocationEvent);
+    document.getElementById("chessBoard").removeEventListener("dragover", destinationEvent);
+    document.getElementById("chessBoard").addEventListener("drag", originalLocationEvent);
     }
+    checkCoronation();
   }
-  if (!isLegalMovement && (!isExtraForcedJump)) { // add || demo=true ?
-    document.getElementById("chessBoard").removeEventListener("click", destinationEvent);
-    document.getElementById("chessBoard").addEventListener("click", originalLocationEvent);
+  if (!isLegalMovement) { // add || demo=true ?
+    document.getElementById("chessBoard").removeEventListener("dragover", destinationEvent);
+    document.getElementById("chessBoard").addEventListener("drag", originalLocationEvent);
   }
 }
 
@@ -100,11 +105,11 @@ function changeBooleansToFalse() {
 
 // remove selected tool color
 
-function removeAllToolSelection() {
+/*function removeAllToolSelection() {
   let selectedElement = document.getElementsByClassName("toolSelected");
   if (selectedElement.length > 0)
     selectedElement[0].classList.remove("toolSelected");
-}
+}*/
 
 //   Switch Turns
 
@@ -127,24 +132,28 @@ function checkMovement() {
       checkJumpWhiteMovement();
     if ((!isLegalMovement && !isWhiteTurn))
       checkJumpBlackMovement();
-  } else if (toolSymbol == whiteKingToolSymbol || toolSymbol == blackKingToolSymbol) {
+  } 
+  toolSymbol = document.getElementById("a" + oldPositionY + oldPositionX).getAttribute("src");
+  if (toolSymbol == whiteKingToolSymbol || toolSymbol == blackKingToolSymbol) {
       checkMovementKings();
-      }
-      if(!isToolTaken) {
+    }
+  if(!isToolTaken) {
       checkForcedJump ();
-      }
+    }
 }
 
 function checkForcedJump () {
-    checkForcedKingsJump();
-    returnSavedXYValues();
-    if (isWhiteTurn) {
+    if (isWhiteTurn && toolSymbol == whitePawnSymbol) {
       checkForcedWhitePawnJump();
       returnSavedXYValues();
     }
-    if (!isWhiteTurn) {
+    if (!isWhiteTurn && toolSymbol==blackPawnSymbol) {
      checkForcedBlackPawnJump();
      returnSavedXYValues();
+    }
+    if (toolSymbol == whiteKingToolSymbol || toolSymbol == blackKingToolSymbol) {
+      checkForcedKingsJump();
+      returnSavedXYValues();
     }
     if ((isLegalMovement == true) && (isForcedJump == true) && (!isToolTaken)) {
     isLegalMovement = false;
@@ -155,7 +164,7 @@ function checkForcedJump () {
 //  Pawn Movement (& Involved Pawn/king Movement)
 
 function checkRegularMovement() {
-  if ((Math.abs(newPositionX - oldPositionX) == 1) && (event.target.innerText == "")) {
+  if ((Math.abs(newPositionX - oldPositionX) == 1) && (event.target.getAttribute("src") == emptyImage)) {
     if (isWhiteTurn && (newPositionY - 1 == oldPositionY)) {
       isLegalMovement = true;
     }
@@ -166,37 +175,29 @@ function checkRegularMovement() {
 }
 
 function checkJumpWhiteMovement() {
-  checkToolInsideJump();
-  if ((Math.abs(newPositionX - oldPositionX) == 2) && (newPositionY - 2 == oldPositionY) && (isBlackToolInsideJump) && (event.target.innerText == "")) {
-     isLegalMovement = true;
-     isToolTaken = true;
-      if (!demo) {
-        blackToolsNumber--;
-        document.getElementById("p2").innerText = "" + blackToolsNumber;
-      if (isNewPositionXSmaller) {
-         document.getElementById("a" + (parseInt(oldPositionY) + 1) + (oldPositionX - 1)).innerText = "";
-       } else {
-        document.getElementById("a" + (parseInt(oldPositionY) + 1) + (parseInt(oldPositionX) + 1)).innerText = "";
-       }
-    }
-  }
+  var array1 = canPawnOrKingMove(oldPositionX, oldPositionY, newPositionX, newPositionY);
+  if(array1[0] == true) {
+  isLegalMovement = true;
+   isToolTaken = true;
+   if (!demo) {
+     blackToolsNumber--;
+     document.getElementById("p2").innerText = "" + blackToolsNumber;
+     document.getElementById("a" + array1[1] + array1[2]).setAttribute("src", emptyImage);
+   }
+ }
 }
 
 function checkJumpBlackMovement() {
-  checkToolInsideJump();
-  if ((Math.abs(newPositionX - oldPositionX) == 2) && (oldPositionY - 2 == newPositionY) && (isWhiteToolInsideJump) && (event.target.innerText == "")) {
-    isLegalMovement = true;
-    isToolTaken = true;
-    if (!demo) {
-      whiteToolsNumber--;
-      document.getElementById("p1").innerText = "" + whiteToolsNumber;
-      if (isNewPositionXSmaller) {
-        document.getElementById("a" + (oldPositionY - 1) + (oldPositionX - 1)).innerText = "";
-      } else {
-        document.getElementById("a" + (oldPositionY - 1) + (parseInt(oldPositionX) + 1)).innerText = "";
-      }
-    }
-  }
+   var array1 = canPawnOrKingMove(oldPositionX, oldPositionY, newPositionX, newPositionY);
+   if(array1[0] == true) {
+ isLegalMovement = true;
+   isToolTaken = true;
+   if (!demo) {
+     whiteToolsNumber--;
+     document.getElementById("p1").innerText = "" + whiteToolsNumber;
+     document.getElementById("a" + array1[1] + array1[2]).setAttribute("src", emptyImage);
+   }
+ }
 }
 
 function checkToolInsideJump() {
@@ -215,14 +216,14 @@ function checkToolInsideJump() {
 
 function checkBlackToolInsideJump() {
   //if((newPositionX > oldPositionX) && document.getElementById(idOneInsideJump).innerText !== ""  && document.getElementById(idOneInsideJump).innerText !== "\u25CE")
-  if ((newPositionX > oldPositionX) && (newPositionY > oldPositionY) && (idOneInsideJump.innerText == blackPawnSymbol || idOneInsideJump.innerText == blackKingToolSymbol)) {
+  if ((newPositionX > oldPositionX) && (newPositionY > oldPositionY) && (idOneInsideJump.getAttribute("src") == blackPawnSymbol || idOneInsideJump.getAttribute("src") == blackKingToolSymbol)) {
     isBlackToolInsideJump = true;
     isNewPositionXSmaller = false;
     isNewPositionYSmaller = false;
     return;
   }
   //if((newPositionX < oldPositionX) && document.getElementById(idTwoInsideJump).innerText !== ""  && document.getElementById(idTwoInsideJump).innerText !== "\u25CE")
-  if ((newPositionX < oldPositionX) && (newPositionY > oldPositionY) && (idTwoInsideJump.innerText == blackPawnSymbol || idTwoInsideJump.innerText == blackKingToolSymbol)) {
+  if ((newPositionX < oldPositionX) && (newPositionY > oldPositionY) && (idTwoInsideJump.getAttribute("src") == blackPawnSymbol || idTwoInsideJump.getAttribute("src") == blackKingToolSymbol)) {
     isBlackToolInsideJump = true;
     isNewPositionXSmaller = true;
     isNewPositionYSmaller = false;
@@ -235,12 +236,12 @@ function checkBlackToolInsideJump() {
 
 function checkWhiteToolInsideJump() {
 
-  if ((newPositionX > oldPositionX) && (newPositionY < oldPositionY) && (idThreeInsideJump.innerText == whitePawnSymbol || idThreeInsideJump.innerText == whiteKingToolSymbol)) {
+  if ((newPositionX > oldPositionX) && (newPositionY < oldPositionY) && (idThreeInsideJump.getAttribute("src") == whitePawnSymbol || idThreeInsideJump.getAttribute("src") == whiteKingToolSymbol)) {
     isWhiteToolInsideJump = true;
     isNewPositionXSmaller = false;
     isNewPositionYSmaller = true;
   }
-  if ((newPositionX < oldPositionX) && (newPositionY < oldPositionY) && (idFourInsideJump.innerText == whitePawnSymbol || idFourInsideJump.innerText == whiteKingToolSymbol)) {
+  if ((newPositionX < oldPositionX) && (newPositionY < oldPositionY) && (idFourInsideJump.getAttribute("src") == whitePawnSymbol || idFourInsideJump.getAttribute("src") == whiteKingToolSymbol)) {
     isWhiteToolInsideJump = true;
     isNewPositionXSmaller = true;
     isNewPositionYSmaller = true;
@@ -255,7 +256,7 @@ function checkWhiteToolInsideJump() {
 function checkForcedKingsJump  () {
   saveXYValues ();
   for (var i=0 ; (i < document.getElementsByClassName("dark").length) && (!isForcedJump) ; i++){
-     if (((isWhiteTurn) && (selectedTool[i].innerText == whiteKingToolSymbol)) || ((!isWhiteTurn) && (selectedTool[i].innerText == blackKingToolSymbol)))
+     if (((isWhiteTurn) && (selectedTool[i].getAttribute("src") == whiteKingToolSymbol)) || ((!isWhiteTurn) && (selectedTool[i].getAttribute("src") == blackKingToolSymbol)))
       {
         strOldPositionY = selectedTool[i].id.slice(1, 2);
         strOldPositionX = selectedTool[i].id.slice(2, 3);
@@ -273,16 +274,16 @@ function checkForcedKingsJump  () {
 
 function canAnyToolMove()
 {
-    let toolSymbol;
+    let toolSymbolFor;
 
     for (var x = 0; x <=7; x++)
     {
         for (var y = 0; y <=7; y++)
         {
-            toolSymbol = getToolSymbolAt(x, y);
+            toolSymbolFor = getToolSymbolAt(x, y);
 
-            if ((!isWhiteTurn && ((toolSymbol == whiteKingToolSymbol) || (toolSymbol == whitePawnSymbol))) ||
-               (( isWhiteTurn && ((toolSymbol == blackKingToolSymbol) || (toolSymbol == blackPawnSymbol)))))
+            if ((!isWhiteTurn && ((toolSymbolFor == whiteKingToolSymbol) || (toolSymbolFor == whitePawnSymbol))) ||
+               (( isWhiteTurn && ((toolSymbolFor == blackKingToolSymbol) || (toolSymbolFor == blackPawnSymbol)))))
             {
                 if (canToolMove(x, y))
                 {
@@ -311,16 +312,16 @@ function isLocationInsideBoard(x, y)
 function getToolSymbolAt(x, y)
 {
     let toolAtCell = document.getElementById("a" + y + x);
-    let toolSymbol = toolAtCell.innerText;
-    return toolSymbol;
+    let toolSymbolFor = toolAtCell.getAttribute("src");
+    return toolSymbolFor;
 }
 
 // Check if the cell/square is is Empty
 
 function isCellEmpty(x, y)
 {
-    let toolSymbol = getToolSymbolAt(x, y);
-    if (toolSymbol == "")
+    let toolSymbolFor = getToolSymbolAt(x, y);
+    if (toolSymbolFor == emptyImage)
     {
         return true;
     }
@@ -331,11 +332,11 @@ function canToolMove(x, y)
 {
     let xTo, yTo;
     let MovementDirection = 1;
-    let toolSymbol = getToolSymbolAt(x, y);
+    let toolSymbolFor = getToolSymbolAt(x, y);
 
-    if ((toolSymbol == blackPawnSymbol) || (toolSymbol == whitePawnSymbol))
+    if ((toolSymbolFor == blackPawnSymbol) || (toolSymbolFor == whitePawnSymbol))
     {
-        if (toolSymbol == blackPawnSymbol)
+        if (toolSymbolFor == blackPawnSymbol)
             MovementDirection = -1; // black moves up
 
         // loop all four places the pawn can move
@@ -352,12 +353,12 @@ function canToolMove(x, y)
             return true;
     }
 
-    if ((toolSymbol == blackKingToolSymbol) || (toolSymbol == whiteKingToolSymbol))
+    if ((toolSymbolFor == blackKingToolSymbol) || (toolSymbolFor == whiteKingToolSymbol))
     {
         // loop all cells the king can move to
         for (var xJump = -2; xJump <= 2; xJump++)
         {
-            for (var yJump = -2; xJump <= 2; yJump++)
+            for (var yJump = -2; yJump <= 2; yJump++)
             {
                 if ((xJump != 0) && (yJump != 0) && (Math.abs(xJump) == Math.abs(yJump))) // if it is a cell we can jump to (diagonal jump)
                 {
@@ -433,13 +434,16 @@ function canPawnOrKingMove(xFrom, yFrom, xTo, yTo)
 // Extra forced jump
 
 function checkExtraForcedJumpAndReact(){
-  if(ExtraForcedJump(parseInt(newPositionX), parseInt(newPositionY))) {
-    oldPositionY = newPositionY;
-    oldPositionX = newPositionX;
-    abc.className = abc.className + " " + "toolSelected";
+  expectedOldPositionX = newPositionX;
+  expectedOldPositionY = newPositionY;
+  if(ExtraForcedJump(parseInt(expectedOldPositionX), parseInt(expectedOldPositionY))) {
+    //oldPositionY = newPositionY;
+    //oldPositionX = newPositionX;
+    //abc.className = abc.className + " " + "toolSelected";
     isExtraForcedJump = true;
     announcePlayerForcedJump ();
-    document.getElementById("chessBoard").addEventListener("click", destinationEvent); 
+    document.getElementById("chessBoard").removeEventListener("dragover", destinationEvent);
+    document.getElementById("chessBoard").addEventListener("drag", originalLocationEvent);
   }
 }
 
@@ -448,11 +452,11 @@ function ExtraForcedJump(x, y)
 {
     let xTo, yTo;
     let MovementDirection = 1;
-    let toolSymbol = getToolSymbolAt(newPositionX, newPositionY);
+    let toolSymbolFor = getToolSymbolAt(newPositionX, newPositionY);
 
-    if ((toolSymbol == blackPawnSymbol) || (toolSymbol == whitePawnSymbol))
+    if ((toolSymbolFor == blackPawnSymbol) || (toolSymbolFor == whitePawnSymbol))
     {
-        if (toolSymbol == blackPawnSymbol)
+        if (toolSymbolFor == blackPawnSymbol)
             MovementDirection = -1; // black moves up, Y number is getting smaller
 
         // loop two directions the pawn can jump
@@ -464,12 +468,12 @@ function ExtraForcedJump(x, y)
             return true;
     }
 
-    if ((toolSymbol == blackKingToolSymbol) || (toolSymbol == whiteKingToolSymbol))
+    if ((toolSymbolFor == blackKingToolSymbol) || (toolSymbolFor == whiteKingToolSymbol))
     {
         // loop all cells the king can move to
         for (var xJump = -2; xJump <= 2; xJump++)
         {
-            for (var yJump = -2; xJump <= 2; yJump++)
+            for (var yJump = -2; yJump <= 2; yJump++)
             {
                 if ((xJump != 0) && (yJump != 0) && (Math.abs(xJump) == Math.abs(yJump)) && (Math.abs(xJump)==2)) // if it is a cell we can jump to (diagonal double jump)
                 {
@@ -526,12 +530,47 @@ function canPawnOrKingJump(xFrom, yFrom, xTo, yTo)
    return false;
 }
 
+function canPawnOrKingMove(xFrom, yFrom, xTo, yTo) {
+  if (isLocationInsideBoard(xFrom, yFrom) && isLocationInsideBoard(xTo, yTo)) {
+    // check if destination cell is empty
+    if (Math.abs(xTo - xFrom) == 1) {
+      return isCellEmpty(xTo, yTo); // return true if the cell is really empty for this values
+    }
+
+    // if we jump, test if there is a tool of other color within
+    if (Math.abs(xTo - xFrom) == 2) {
+      if (isCellEmpty(xTo, yTo)) {
+        let xMiddle = (xTo + xFrom) / 2;
+        let yMiddle = (yTo + yFrom) / 2;
+        let myTool = getToolSymbolAt(xFrom, yFrom);
+        let toolInTheMiddle = getToolSymbolAt(xMiddle, yMiddle);
+        let isJump = false;
+        if ((myTool == whitePawnSymbol) || (myTool == whiteKingToolSymbol)) {
+          if ((toolInTheMiddle == blackPawnSymbol) || (toolInTheMiddle == blackKingToolSymbol)) {
+            isJump = true;
+            return [isJump, yMiddle, xMiddle]; // white pawn can eat black pawn or king
+          }
+        }
+
+        if ((myTool == blackPawnSymbol) || (myTool == blackKingToolSymbol)) {
+          if ((toolInTheMiddle == whitePawnSymbol) || (toolInTheMiddle == whiteKingToolSymbol)) {
+            isJump = true;
+            return [isJump, yMiddle, xMiddle]; // black pawn can eat white pawn or king
+          }
+        }
+      }
+    }
+  }
+  isJump = false;
+  return [isJump, 0, 0];
+}
+
     // forced PawnJumpMovement
 
     function checkForcedWhitePawnJump  () {
       saveXYValues ();
       for (var i=0 ; (i < document.getElementsByClassName("dark").length) && (!isForcedJump) ; i++){
-         if ((isWhiteTurn) && (selectedTool[i].innerText == whitePawnSymbol)) 
+        if ((isWhiteTurn) && (selectedTool[i].getAttribute("src") == whitePawnSymbol)) {
           {
             strOldPositionY = selectedTool[i].id.slice(1, 2);
             strOldPositionX = selectedTool[i].id.slice(2, 3);
@@ -541,12 +580,13 @@ function canPawnOrKingJump(xFrom, yFrom, xTo, yTo)
           } 
       }
   }
+}
   
 
   function checkForcedBlackPawnJump  () {
     saveXYValues ();
     for (var i=0 ; (i < document.getElementsByClassName("dark").length) && (!isForcedJump) ; i++){
-       if ((!isWhiteTurn) && (selectedTool[i].innerText == blackPawnSymbol)) 
+      if ((!isWhiteTurn) && (selectedTool[i].getAttribute("src") == blackPawnSymbol)) {
         {
           strOldPositionY = selectedTool[i].id.slice(1, 2);
           strOldPositionX = selectedTool[i].id.slice(2, 3);
@@ -556,11 +596,12 @@ function canPawnOrKingJump(xFrom, yFrom, xTo, yTo)
         } 
     }
   }
+}
 
 
   function checkForcedKingsJumpAfterVariableDefined() {
-    toolSymbol = document.getElementById("a" + oldPositionY + oldPositionX).innerText;
-    if (document.getElementById("a" + newPositionY + newPositionX).innerText == "")
+    toolSymbol = document.getElementById("a" + oldPositionY + oldPositionX).getAttribute("src");
+    if (document.getElementById("a" + newPositionY + newPositionX).getAttribute("src") == emptyImage) {
       {
         if (isWhiteTurn && (toolSymbol == whiteKingToolSymbol || toolSymbol == whitePawnSymbol))
            {
@@ -580,6 +621,7 @@ function canPawnOrKingJump(xFrom, yFrom, xTo, yTo)
          }
     }
   }
+}
 
 //  check Down Movement (White) forced movement inside board
 
@@ -590,10 +632,10 @@ function canPawnOrKingJump(xFrom, yFrom, xTo, yTo)
       newPositionX = oldPositionX -2;
       checkForcedKingsJumpAfterVariableDefined();
       }
-    if (((oldPositionY - 2) >=0) && ((oldPositionX +2) <=7))
+    if (((oldPositionY - 2) >=0) && (((oldPositionX) +2) <=7))
       {
       newPositionY = oldPositionY -2;
-      newPositionX = oldPositionX +2;
+      newPositionX = parseInt(oldPositionX) +2;
       checkForcedKingsJumpAfterVariableDefined();
       }
     }
@@ -603,13 +645,13 @@ function canPawnOrKingJump(xFrom, yFrom, xTo, yTo)
     function checkDownMovementOutOfArray () {
       if (((parseInt(oldPositionY) + 2) <=7) && ((parseInt(oldPositionX) +2) <=7))
       {
-      newPositionY = oldPositionY +2;
-      newPositionX = oldPositionX +2;
+        newPositionY = parseInt(oldPositionY) + 2;
+        newPositionX = parseInt(oldPositionX) + 2;
       checkForcedKingsJumpAfterVariableDefined();
       }
-    if (((oldPositionY + 2) <=7) && ((oldPositionX -2) >=0))
+    if (((parseInt(oldPositionY) + 2) <=7) && ((oldPositionX -2) >=0))
       {
-      newPositionY = oldPositionY +2;
+        newPositionY = parseInt(oldPositionY) + 2;
       newPositionX = oldPositionX -2;
       checkForcedKingsJumpAfterVariableDefined();
       }
@@ -631,7 +673,7 @@ function canPawnOrKingJump(xFrom, yFrom, xTo, yTo)
       newPositionY = savedNewPositionY;
       newPositionX = savedNewPositionX;
     }
-
+  
 // ---- Kings Movement----
 
 function checkMovementKings() {
@@ -643,14 +685,14 @@ function checkMovementKings() {
 //  Check Regular movement of both color Kings
 
 function checkRegularMovementKings() {
-  if ((Math.abs(newPositionX - oldPositionX) == 1) && (Math.abs(newPositionY - oldPositionY) == 1) && (event.target.innerText == "")) {
+  if ((Math.abs(newPositionX - oldPositionX) == 1) && (Math.abs(newPositionY - oldPositionY) == 1) && (event.target.getAttribute("src") == emptyImage)) {
     isLegalMovement = true;
   }
 }
 
 //  Check Jump movement of both color Kings
 
-function checkJumpKingMovement() {
+/*function checkJumpKingMovement() {
   checkToolInsideJump();
   if ((isWhiteTurn && isBlackToolInsideJump) || (!isWhiteTurn && isWhiteToolInsideJump)) {
     if ((Math.abs(newPositionX - oldPositionX) == 2) && (Math.abs(newPositionY - oldPositionY) == 2)) {
@@ -669,34 +711,47 @@ function checkJumpKingMovement() {
       }
     }
   }
+}*/
+
+function checkJumpKingMovement() {
+      var array1 = canPawnOrKingMove(oldPositionX, oldPositionY, newPositionX, newPositionY);
+      if(array1[0] == true) {
+        isLegalMovement = true;
+        isToolTaken = true;
+         if (!demo) {
+          isWhiteTurn ?  blackToolsNumber-- : whiteToolsNumber-- ;
+          document.getElementById("p2").innerText = "" + (isWhiteTurn ? blackToolsNumber : whiteToolsNumber);
+          document.getElementById("a" + array1[1] + array1[2]).setAttribute("src", emptyImage);
+       }
+     }
 }
 
 // Clear the taken tool, both colors
 
 function eatToolClearCell() {
   if (isNewPositionXSmaller && !isNewPositionYSmaller) {
-    document.getElementById("a" + (parseInt(oldPositionY) + 1) + (oldPositionX - 1)).innerText = "";
+    document.getElementById("a" + (parseInt(oldPositionY) + 1) + (oldPositionX - 1)).setAttribute("src", emptyImage);
   }
   if (!isNewPositionXSmaller && !isNewPositionYSmaller) {
-    document.getElementById("a" + (parseInt(oldPositionY) + 1) + (parseInt(oldPositionX) + 1)).innerText = "";
+    document.getElementById("a" + (parseInt(oldPositionY) + 1) + (parseInt(oldPositionX) + 1)).setAttribute("src", emptyImage);
   }
   if (isNewPositionXSmaller && isNewPositionYSmaller) {
-    document.getElementById("a" + (oldPositionY - 1) + (oldPositionX - 1)).innerText = "";
+    document.getElementById("a" + (oldPositionY - 1) + (oldPositionX - 1)).setAttribute("src", emptyImage);
   }
   if (!isNewPositionXSmaller && isNewPositionYSmaller) {
-    document.getElementById("a" + (oldPositionY - 1) + (parseInt(oldPositionX) + 1)).innerText = "";
+    document.getElementById("a" + (oldPositionY - 1) + (parseInt(oldPositionX) + 1)).setAttribute("src", emptyImage);
   }
 }
 
 // Check if Black tool in the middle of Reverse Jump by Black King
 
 function checkBlackToolInsideReverseJump() {
-  if ((newPositionX > oldPositionX) && (newPositionY < oldPositionY) && (idThreeInsideJump.innerText == blackPawnSymbol || idThreeInsideJump.innerText == blackKingToolSymbol)) {
+  if ((newPositionX > oldPositionX) && (newPositionY < oldPositionY) && (idThreeInsideJump.getAttribute("src") == blackPawnSymbol || idThreeInsideJump.getAttribute("src") == blackKingToolSymbol)) {
     isBlackToolInsideJump = true;
     isNewPositionXSmaller = false;
     isNewPositionYSmaller = true;
   }
-  if ((newPositionX < oldPositionX) && (newPositionY < oldPositionY) && (idFourInsideJump.innerText == blackPawnSymbol || idFourInsideJump.innerText == blackKingToolSymbol)) {
+  if ((newPositionX < oldPositionX) && (newPositionY < oldPositionY) && (idFourInsideJump.getAttribute("src") == blackPawnSymbol || idFourInsideJump.getAttribute("src") == blackKingToolSymbol)) {
     isBlackToolInsideJump = true;
     isNewPositionXSmaller = true;
     isNewPositionYSmaller = true;
@@ -706,12 +761,12 @@ function checkBlackToolInsideReverseJump() {
 // Check if Black tool in the middle of Reverse Jump by White King
 
 function checkWhiteToolInsideReverseJump() {
-  if ((newPositionX > oldPositionX) && (newPositionY > oldPositionY) && (idOneInsideJump.innerText == whitePawnSymbol || idOneInsideJump.innerText == whiteKingToolSymbol)) {
+  if ((newPositionX > oldPositionX) && (newPositionY > oldPositionY) && (idOneInsideJump.getAttribute("src") == whitePawnSymbol || idOneInsideJump.getAttribute("src") == whiteKingToolSymbol)) {
     isWhiteToolInsideJump = true;
     isNewPositionXSmaller = false;
     isNewPositionYSmaller = false;
   }
-  if ((newPositionX < oldPositionX) && (newPositionY > oldPositionY) && (idTwoInsideJump.innerText == whitePawnSymbol || idTwoInsideJump.innerText == whiteKingToolSymbol)) {
+  if ((newPositionX < oldPositionX) && (newPositionY > oldPositionY) && (idTwoInsideJump.getAttribute("src") == whitePawnSymbol || idTwoInsideJump.getAttribute("src") == whiteKingToolSymbol)) {
     isWhiteToolInsideJump = true;
     isNewPositionXSmaller = true;
     isNewPositionYSmaller = false;
@@ -722,10 +777,10 @@ function checkWhiteToolInsideReverseJump() {
 
 function checkCoronation() {
   if (isWhiteTurn && newPositionY == 7) {
-    document.getElementById("a" + newPositionY + newPositionX).innerText = whiteKingToolSymbol;
+    document.getElementById("a" + newPositionY + newPositionX).setAttribute("src", whiteKingToolSymbol);
   }
   if (!isWhiteTurn && newPositionY == 0) {
-    document.getElementById("a" + newPositionY + newPositionX).innerText = blackKingToolSymbol;
+    document.getElementById("a" + newPositionY + newPositionX).setAttribute("src", blackKingToolSymbol);
   }
 }
 
