@@ -67,11 +67,17 @@ function destinationEvent(event) {
     document.getElementById("a" + oldPositionY + oldPositionX).setAttribute("src", emptyImage);
     document.getElementById("chessBoard").removeEventListener("dragover", destinationEvent);
     checkCoronation();
-      if (!canAnyToolMove ()) // if the opponent can not move, this is victory
+      if (!isWhiteTurn && !canAnyWhiteToolMove ()) // if the white can not move, this is victory
       {
           gameOverDeclaration();
       }
-    cancelAnouncingForcedJump();
+      if (isWhiteTurn && !canAnyBlackToolMove ()) // if the black can not move, this is victory
+      {
+          gameOverDeclaration();
+      }
+      if(!isGameOver){
+      cancelAnouncingForcedJump();
+      }
     checkToolsNumber();
     if (isToolTaken) {
       checkExtraForcedJumpAndReact();
@@ -83,13 +89,13 @@ function destinationEvent(event) {
     }
     checkCoronation();
   }
-  if (!isLegalMovement) { // add || demo=true ?
+  if (!isLegalMovement) { 
     document.getElementById("chessBoard").removeEventListener("dragover", destinationEvent);
     document.getElementById("chessBoard").addEventListener("drag", originalLocationEvent);
   }
 }
 
-// ------------- functions--------------
+// ------------- functions--------------//
 
 // Change Booleans to false
 
@@ -103,15 +109,7 @@ function changeBooleansToFalse() {
   isExtraForcedJump = false;
 }
 
-// remove selected tool color
-
-/*function removeAllToolSelection() {
-  let selectedElement = document.getElementsByClassName("toolSelected");
-  if (selectedElement.length > 0)
-    selectedElement[0].classList.remove("toolSelected");
-}*/
-
-//   Switch Turns
+// switch turns
 
 function changePlayerTurn() {
     if (isWhiteTurn) {
@@ -155,7 +153,7 @@ function checkForcedJump () {
       checkForcedKingsJump();
       returnSavedXYValues();
     }
-    if ((isLegalMovement == true) && (isForcedJump == true) && (!isToolTaken)) {
+    if ((isForcedJump == true) && (!isToolTaken)) {
     isLegalMovement = false;
     announcePlayerForcedJump ();
     changeBooleansToFalse();
@@ -175,7 +173,7 @@ function checkRegularMovement() {
 }
 
 function checkJumpWhiteMovement() {
-  var array1 = canPawnOrKingMove(oldPositionX, oldPositionY, newPositionX, newPositionY);
+  var array1 = canPawnOrKingMoveArray1(oldPositionX, oldPositionY, newPositionX, newPositionY);
   if(array1[0] == true) {
   isLegalMovement = true;
    isToolTaken = true;
@@ -188,7 +186,7 @@ function checkJumpWhiteMovement() {
 }
 
 function checkJumpBlackMovement() {
-   var array1 = canPawnOrKingMove(oldPositionX, oldPositionY, newPositionX, newPositionY);
+   var array1 = canPawnOrKingMoveArray1(oldPositionX, oldPositionY, newPositionX, newPositionY);
    if(array1[0] == true) {
  isLegalMovement = true;
    isToolTaken = true;
@@ -272,7 +270,7 @@ function checkForcedKingsJump  () {
 
 // Check all board cells to see if any Tool can move
 
-function canAnyToolMove()
+function canAnyBlackToolMove()
 {
     let toolSymbolFor;
 
@@ -282,8 +280,29 @@ function canAnyToolMove()
         {
             toolSymbolFor = getToolSymbolAt(x, y);
 
-            if ((!isWhiteTurn && ((toolSymbolFor == whiteKingToolSymbol) || (toolSymbolFor == whitePawnSymbol))) ||
-               (( isWhiteTurn && ((toolSymbolFor == blackKingToolSymbol) || (toolSymbolFor == blackPawnSymbol)))))
+            if ( isWhiteTurn && ((toolSymbolFor == blackKingToolSymbol) || (toolSymbolFor == blackPawnSymbol)))
+            {
+                if (canToolMove(x, y))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function canAnyWhiteToolMove()
+{
+    let toolSymbolFor;
+
+    for (var x = 0; x <=7; x++)
+    {
+        for (var y = 0; y <=7; y++)
+        {
+            toolSymbolFor = getToolSymbolAt(x, y);
+
+            if (!isWhiteTurn && ((toolSymbolFor == whiteKingToolSymbol) || (toolSymbolFor == whitePawnSymbol)))
             {
                 if (canToolMove(x, y))
                 {
@@ -437,9 +456,6 @@ function checkExtraForcedJumpAndReact(){
   expectedOldPositionX = newPositionX;
   expectedOldPositionY = newPositionY;
   if(ExtraForcedJump(parseInt(expectedOldPositionX), parseInt(expectedOldPositionY))) {
-    //oldPositionY = newPositionY;
-    //oldPositionX = newPositionX;
-    //abc.className = abc.className + " " + "toolSelected";
     isExtraForcedJump = true;
     announcePlayerForcedJump ();
     document.getElementById("chessBoard").removeEventListener("dragover", destinationEvent);
@@ -530,7 +546,7 @@ function canPawnOrKingJump(xFrom, yFrom, xTo, yTo)
    return false;
 }
 
-function canPawnOrKingMove(xFrom, yFrom, xTo, yTo) {
+function canPawnOrKingMoveArray1(xFrom, yFrom, xTo, yTo) {
   if (isLocationInsideBoard(xFrom, yFrom) && isLocationInsideBoard(xTo, yTo)) {
     // check if destination cell is empty
     if (Math.abs(xTo - xFrom) == 1) {
@@ -690,31 +706,9 @@ function checkRegularMovementKings() {
   }
 }
 
-//  Check Jump movement of both color Kings
-
-/*function checkJumpKingMovement() {
-  checkToolInsideJump();
-  if ((isWhiteTurn && isBlackToolInsideJump) || (!isWhiteTurn && isWhiteToolInsideJump)) {
-    if ((Math.abs(newPositionX - oldPositionX) == 2) && (Math.abs(newPositionY - oldPositionY) == 2)) {
-      isLegalMovement = true;
-      isToolTaken = true;
-      if (!demo) {
-        if (isWhiteTurn){
-          blackToolsNumber--;
-          document.getElementById("p2").innerText = "" + blackToolsNumber;
-        }
-        if (!isWhiteTurn) {
-          whiteToolsNumber--;
-          document.getElementById("p1").innerText = "" + whiteToolsNumber;
-        }
-        eatToolClearCell();
-      }
-    }
-  }
-}*/
 
 function checkJumpKingMovement() {
-      var array1 = canPawnOrKingMove(oldPositionX, oldPositionY, newPositionX, newPositionY);
+      var array1 = canPawnOrKingMoveArray1(oldPositionX, oldPositionY, newPositionX, newPositionY);
       if(array1[0] == true) {
         isLegalMovement = true;
         isToolTaken = true;
@@ -788,24 +782,10 @@ function checkCoronation() {
 // Taken Tools Count
 
 function checkToolsNumber() {
-  if (isWhiteTurn)
-    checkWhiteToolsNumber();
-  else
-    checkBlackToolsNumber();
-}
-
-function checkBlackToolsNumber() {
   if (blackToolsNumber == 0) {
-    isGameOver = true;
-    isWhiteWon = true;
     gameOverDeclaration();
   }
-}
-
-function checkWhiteToolsNumber() {
   if (whiteToolsNumber == 0) {
-    isGameOver = true;
-    isBlackWon = true;
     gameOverDeclaration();
   }
 }
@@ -813,6 +793,7 @@ function checkWhiteToolsNumber() {
 // Victory & Game End Declaration
 
 function gameOverDeclaration() {
+  isGameOver = true;
   document.getElementById("lastLine").innerText = "  Game Over !  " +
-    (isWhiteWon ? "White Player Won !" : "Black Player Won !");
+    (isWhiteTurn ? "White Player Won !" : "Black Player Won !");
 }
