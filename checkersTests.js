@@ -141,18 +141,16 @@ function checkMovement() {
 }
 
 function checkForcedJump () {
-    if (isWhiteTurn && toolSymbol == whitePawnSymbol) {
+    if (isWhiteTurn) {
       checkForcedWhitePawnJump();
       returnSavedXYValues();
     }
-    if (!isWhiteTurn && toolSymbol==blackPawnSymbol) {
+    if (!isWhiteTurn) {
      checkForcedBlackPawnJump();
      returnSavedXYValues();
     }
-    if (toolSymbol == whiteKingToolSymbol || toolSymbol == blackKingToolSymbol) {
       checkForcedKingsJump();
       returnSavedXYValues();
-    }
     if ((isForcedJump == true) && (!isToolTaken)) {
     isLegalMovement = false;
     announcePlayerForcedJump ();
