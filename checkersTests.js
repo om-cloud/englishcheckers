@@ -196,56 +196,7 @@ function checkJumpBlackMovement() {
  }
 }
 
-function checkToolInsideJump() {
-  idOneInsideJump = document.getElementById("a" + (parseInt(oldPositionY) + 1) + (parseInt(oldPositionX) + 1));
-  idTwoInsideJump = document.getElementById("a" + (parseInt(oldPositionY) + 1) + (oldPositionX - 1));
-  idThreeInsideJump = document.getElementById("a" + (oldPositionY - 1) + (parseInt(oldPositionX) + 1));
-  idFourInsideJump = document.getElementById("a" + (oldPositionY - 1) + (oldPositionX - 1));
-  if (toolSymbol == whitePawnSymbol || toolSymbol == whiteKingToolSymbol) {
-    checkBlackToolInsideJump();
-  }
-  if (toolSymbol == blackPawnSymbol || toolSymbol == blackKingToolSymbol) {
-    checkWhiteToolInsideJump();
-  }
-}
 
-
-function checkBlackToolInsideJump() {
-  //if((newPositionX > oldPositionX) && document.getElementById(idOneInsideJump).innerText !== ""  && document.getElementById(idOneInsideJump).innerText !== "\u25CE")
-  if ((newPositionX > oldPositionX) && (newPositionY > oldPositionY) && (idOneInsideJump.getAttribute("src") == blackPawnSymbol || idOneInsideJump.getAttribute("src") == blackKingToolSymbol)) {
-    isBlackToolInsideJump = true;
-    isNewPositionXSmaller = false;
-    isNewPositionYSmaller = false;
-    return;
-  }
-  //if((newPositionX < oldPositionX) && document.getElementById(idTwoInsideJump).innerText !== ""  && document.getElementById(idTwoInsideJump).innerText !== "\u25CE")
-  if ((newPositionX < oldPositionX) && (newPositionY > oldPositionY) && (idTwoInsideJump.getAttribute("src") == blackPawnSymbol || idTwoInsideJump.getAttribute("src") == blackKingToolSymbol)) {
-    isBlackToolInsideJump = true;
-    isNewPositionXSmaller = true;
-    isNewPositionYSmaller = false;
-  }
-
-  if (toolSymbol == whiteKingToolSymbol && !isBlackToolInsideJump) {
-    checkBlackToolInsideReverseJump();
-  }
-}
-
-function checkWhiteToolInsideJump() {
-
-  if ((newPositionX > oldPositionX) && (newPositionY < oldPositionY) && (idThreeInsideJump.getAttribute("src") == whitePawnSymbol || idThreeInsideJump.getAttribute("src") == whiteKingToolSymbol)) {
-    isWhiteToolInsideJump = true;
-    isNewPositionXSmaller = false;
-    isNewPositionYSmaller = true;
-  }
-  if ((newPositionX < oldPositionX) && (newPositionY < oldPositionY) && (idFourInsideJump.getAttribute("src") == whitePawnSymbol || idFourInsideJump.getAttribute("src") == whiteKingToolSymbol)) {
-    isWhiteToolInsideJump = true;
-    isNewPositionXSmaller = true;
-    isNewPositionYSmaller = true;
-  }
-  if (toolSymbol == blackKingToolSymbol && !isWhiteToolInsideJump) {
-    checkWhiteToolInsideReverseJump();
-  }
-}
 
 //  Forced Jump movement Kings
 
@@ -347,6 +298,7 @@ function isCellEmpty(x, y)
 
 function canToolMove(x, y)
 {
+  let notAnyToolCanMoveCheck = true;
     let xTo, yTo;
     let MovementDirection = 1;
     let toolSymbolFor = getToolSymbolAt(x, y);
@@ -357,16 +309,16 @@ function canToolMove(x, y)
             MovementDirection = -1; // black moves up
 
         // loop all four places the pawn can move
-        if (canPawnOrKingMove(x, y, x + 1, (y + MovementDirection)) == true)
+        if (canPawnOrKingMove(notAnyToolCanMoveCheck, x, y, x + 1, (y + MovementDirection)) == true)
             return true;
 
-        if (canPawnOrKingMove(x, y, x - 1, (y + MovementDirection)) == true)
+        if (canPawnOrKingMove(notAnyToolCanMoveCheck, x, y, x - 1, (y + MovementDirection)) == true)
             return true;
 
-        if (canPawnOrKingMove(x, y, x + 2, y + (2 * MovementDirection)) == true)
+        if (canPawnOrKingMove(notAnyToolCanMoveCheck, x, y, x + 2, y + (2 * MovementDirection)) == true)
             return true;
 
-        if (canPawnOrKingMove(x, y, x - 2, y + (2 * MovementDirection)) == true)
+        if (canPawnOrKingMove(notAnyToolCanMoveCheck, x, y, x - 2, y + (2 * MovementDirection)) == true)
             return true;
     }
 
@@ -379,7 +331,7 @@ function canToolMove(x, y)
             {
                 if ((xJump != 0) && (yJump != 0) && (Math.abs(xJump) == Math.abs(yJump))) // if it is a cell we can jump to (diagonal jump)
                 {
-                    if (canPawnOrKingMove(x, y, x + xJump, y + yJump))
+                    if (canPawnOrKingMove(notAnyToolCanMoveCheck, x, y, x + xJump, y + yJump))
                     {
                         return true;
                     }
@@ -392,15 +344,17 @@ function canToolMove(x, y)
 }
 
 
- // check if a pawn or king can move from (xFrom, yFrom) to (xTo, yTo)
+ // check if a pawn or king can move from (xFrom, yFrom) to (xTo, yTo) And Also check when bollean argument is false
+ // if jump\tool taking is possible
  // (disregarding tool direction)
 
-function canPawnOrKingMove(xFrom, yFrom, xTo, yTo)
+function canPawnOrKingMove(notAnyToolCanMoveCheck, xFrom, yFrom, xTo, yTo)
 {
+  
     if (isLocationInsideBoard (xFrom, yFrom) && isLocationInsideBoard(xTo, yTo))
     {
         // check if destination cell is empty
-        if (Math.abs(xTo - xFrom) == 1)
+        if ((Math.abs(xTo - xFrom) == 1) && notAnyToolCanMoveCheck == true)
         {
             return isCellEmpty (xTo, yTo); // return true if the cell is really empty for this values
         }
@@ -441,6 +395,10 @@ function canPawnOrKingMove(xFrom, yFrom, xTo, yTo)
     function announcePlayerForcedJump () {
       document.getElementById("lastLine").innerText = " " + (isWhiteTurn ? "White Player" : "Black Player ") + " You Have a Forced Tool taking ";
     }
+
+    function announcePlayerExtraForcedJump () {
+        document.getElementById("lastLine").innerText = " " + (isWhiteTurn ? "White Player" : "Black Player ") + " You Have One More Forced Tool taking ";
+      }
     
     function cancelAnouncingForcedJump() {
       document.getElementById("lastLine").innerText = " ";
@@ -455,7 +413,7 @@ function checkExtraForcedJumpAndReact(){
   expectedOldPositionY = newPositionY;
   if(ExtraForcedJump(parseInt(expectedOldPositionX), parseInt(expectedOldPositionY))) {
     isExtraForcedJump = true;
-    announcePlayerForcedJump ();
+    announcePlayerExtraForcedJump();
     document.getElementById("chessBoard").removeEventListener("dragover", destinationEvent);
     document.getElementById("chessBoard").addEventListener("drag", originalLocationEvent);
   }
@@ -464,6 +422,7 @@ function checkExtraForcedJumpAndReact(){
 
 function ExtraForcedJump(x, y)
 {
+  let notAnyToolCanMoveCheck = false
     let xTo, yTo;
     let MovementDirection = 1;
     let toolSymbolFor = getToolSymbolAt(newPositionX, newPositionY);
@@ -475,10 +434,10 @@ function ExtraForcedJump(x, y)
 
         // loop two directions the pawn can jump
 
-        if (canPawnOrKingJump(x, y, x + 2, y + (2 * MovementDirection)) == true)
+        if (canPawnOrKingMove(notAnyToolCanMoveCheck, x, y, x + 2, y + (2 * MovementDirection)) == true)
             return true;
 
-        if (canPawnOrKingJump(x, y, x - 2, y + (2 * MovementDirection)) == true)
+        if (canPawnOrKingMove(notAnyToolCanMoveCheck, x, y, x - 2, y + (2 * MovementDirection)) == true)
             return true;
     }
 
@@ -491,7 +450,7 @@ function ExtraForcedJump(x, y)
             {
                 if ((xJump != 0) && (yJump != 0) && (Math.abs(xJump) == Math.abs(yJump)) && (Math.abs(xJump)==2)) // if it is a cell we can jump to (diagonal double jump)
                 {
-                    if (canPawnOrKingJump(x, y, x + xJump, y + yJump))
+                    if (canPawnOrKingMove(notAnyToolCanMoveCheck, x, y, x + xJump, y + yJump))
                     {
                         return true;
                     }
@@ -503,46 +462,6 @@ function ExtraForcedJump(x, y)
     return false;
 }
 
-
-// check if a pawn or king can move from (xFrom, yFrom) to (xTo, yTo)
-// (disregarding tool direction)
-
-function canPawnOrKingJump(xFrom, yFrom, xTo, yTo)
-{
-   if (isLocationInsideBoard (xFrom, yFrom) && isLocationInsideBoard(xTo, yTo))
-   {
-       // check if destination cell is empty
-
-       // if we jump, test if there is a tool of other color within
-       if (Math.abs(xTo - xFrom) == 2)
-       {
-           if (isCellEmpty(xTo, yTo))        // check if destination cell is empty
-           {
-               let xMiddle = (xTo + xFrom) / 2;
-               let yMiddle = (yTo + yFrom) / 2;
-               let myTool = getToolSymbolAt(xFrom, yFrom);
-               let toolInTheMiddle = getToolSymbolAt(xMiddle, yMiddle);
-
-               if ((myTool == whitePawnSymbol) || (myTool == whiteKingToolSymbol))
-               {
-                   if ((toolInTheMiddle == blackPawnSymbol) || (toolInTheMiddle == blackKingToolSymbol))
-                   {
-                       return true; // white pawn can eat black pawn or king
-                   }
-               }
-
-               if ((myTool == blackPawnSymbol) || (myTool == blackKingToolSymbol))
-               {
-                   if ((toolInTheMiddle == whitePawnSymbol) || (toolInTheMiddle == whiteKingToolSymbol))
-                   {
-                       return true; // black pawn can eat white pawn or king
-                   }
-               }
-           }
-       }
-   }
-   return false;
-}
 
 function canPawnOrKingMoveArray1(xFrom, yFrom, xTo, yTo) {
   if (isLocationInsideBoard(xFrom, yFrom) && isLocationInsideBoard(xTo, yTo)) {
@@ -613,61 +532,48 @@ function canPawnOrKingMoveArray1(xFrom, yFrom, xTo, yTo) {
 }
 
 
-  function checkForcedKingsJumpAfterVariableDefined() {
-    toolSymbol = document.getElementById("a" + oldPositionY + oldPositionX).getAttribute("src");
-    if (document.getElementById("a" + newPositionY + newPositionX).getAttribute("src") == emptyImage) {
-      {
-        if (isWhiteTurn && (toolSymbol == whiteKingToolSymbol || toolSymbol == whitePawnSymbol))
-           {
-            checkToolInsideJump();
-            if (isBlackToolInsideJump)
-               {
-               isForcedJump = true;
-               }
-           }
-        if (!isWhiteTurn  && (toolSymbol == blackKingToolSymbol || toolSymbol == blackPawnSymbol))
-        {
-          checkToolInsideJump();
-          if (isWhiteToolInsideJump)
-             {
-             isForcedJump = true;
-             }
-         }
-    }
-  }
-}
 
 //  check Down Movement (White) forced movement inside board
 
     function checkUpMovementOutOfArray() {
+        let notAnyToolCanMoveCheck = false;
       if (((oldPositionY -2) >=0) && ((oldPositionX -2) >=0))
       {
       newPositionY = oldPositionY -2;
       newPositionX = oldPositionX -2;
-      checkForcedKingsJumpAfterVariableDefined();
+       if((canPawnOrKingMove(notAnyToolCanMoveCheck, oldPositionX, oldPositionY, newPositionX, newPositionY)) == true) {
+        isForcedJump = true;
+       }
       }
     if (((oldPositionY - 2) >=0) && (((oldPositionX) +2) <=7))
       {
       newPositionY = oldPositionY -2;
       newPositionX = parseInt(oldPositionX) +2;
-      checkForcedKingsJumpAfterVariableDefined();
+      if((canPawnOrKingMove(notAnyToolCanMoveCheck, oldPositionX, oldPositionY, newPositionX, newPositionY)) == true) {
+        isForcedJump = true;
+        }
       }
     }
 
 //  check  Up Movement (Black) forced movement inside board
 
     function checkDownMovementOutOfArray () {
+        let notAnyToolCanMoveCheck = false;
       if (((parseInt(oldPositionY) + 2) <=7) && ((parseInt(oldPositionX) +2) <=7))
       {
         newPositionY = parseInt(oldPositionY) + 2;
         newPositionX = parseInt(oldPositionX) + 2;
-      checkForcedKingsJumpAfterVariableDefined();
+        if((canPawnOrKingMove(notAnyToolCanMoveCheck, oldPositionX, oldPositionY, newPositionX, newPositionY)) == true) {
+        isForcedJump = true;
+        } 
       }
     if (((parseInt(oldPositionY) + 2) <=7) && ((oldPositionX -2) >=0))
       {
-        newPositionY = parseInt(oldPositionY) + 2;
+      newPositionY = parseInt(oldPositionY) + 2;
       newPositionX = oldPositionX -2;
-      checkForcedKingsJumpAfterVariableDefined();
+      if((canPawnOrKingMove(notAnyToolCanMoveCheck, oldPositionX, oldPositionY, newPositionX, newPositionY)) == true) {
+        isForcedJump = true;
+        }
       }
     }
 
@@ -718,60 +624,15 @@ function checkJumpKingMovement() {
      }
 }
 
-// Clear the taken tool, both colors
-
-function eatToolClearCell() {
-  if (isNewPositionXSmaller && !isNewPositionYSmaller) {
-    document.getElementById("a" + (parseInt(oldPositionY) + 1) + (oldPositionX - 1)).setAttribute("src", emptyImage);
-  }
-  if (!isNewPositionXSmaller && !isNewPositionYSmaller) {
-    document.getElementById("a" + (parseInt(oldPositionY) + 1) + (parseInt(oldPositionX) + 1)).setAttribute("src", emptyImage);
-  }
-  if (isNewPositionXSmaller && isNewPositionYSmaller) {
-    document.getElementById("a" + (oldPositionY - 1) + (oldPositionX - 1)).setAttribute("src", emptyImage);
-  }
-  if (!isNewPositionXSmaller && isNewPositionYSmaller) {
-    document.getElementById("a" + (oldPositionY - 1) + (parseInt(oldPositionX) + 1)).setAttribute("src", emptyImage);
-  }
-}
-
-// Check if Black tool in the middle of Reverse Jump by Black King
-
-function checkBlackToolInsideReverseJump() {
-  if ((newPositionX > oldPositionX) && (newPositionY < oldPositionY) && (idThreeInsideJump.getAttribute("src") == blackPawnSymbol || idThreeInsideJump.getAttribute("src") == blackKingToolSymbol)) {
-    isBlackToolInsideJump = true;
-    isNewPositionXSmaller = false;
-    isNewPositionYSmaller = true;
-  }
-  if ((newPositionX < oldPositionX) && (newPositionY < oldPositionY) && (idFourInsideJump.getAttribute("src") == blackPawnSymbol || idFourInsideJump.getAttribute("src") == blackKingToolSymbol)) {
-    isBlackToolInsideJump = true;
-    isNewPositionXSmaller = true;
-    isNewPositionYSmaller = true;
-  }
-}
-
-// Check if Black tool in the middle of Reverse Jump by White King
-
-function checkWhiteToolInsideReverseJump() {
-  if ((newPositionX > oldPositionX) && (newPositionY > oldPositionY) && (idOneInsideJump.getAttribute("src") == whitePawnSymbol || idOneInsideJump.getAttribute("src") == whiteKingToolSymbol)) {
-    isWhiteToolInsideJump = true;
-    isNewPositionXSmaller = false;
-    isNewPositionYSmaller = false;
-  }
-  if ((newPositionX < oldPositionX) && (newPositionY > oldPositionY) && (idTwoInsideJump.getAttribute("src") == whitePawnSymbol || idTwoInsideJump.getAttribute("src") == whiteKingToolSymbol)) {
-    isWhiteToolInsideJump = true;
-    isNewPositionXSmaller = true;
-    isNewPositionYSmaller = false;
-  }
-}
 
 //   Coronation
 
 function checkCoronation() {
-  if (isWhiteTurn && newPositionY == 7) {
+  let tooltoCoronationSymbol = document.getElementById("a" + newPositionY + newPositionX).getAttribute("src");
+  if (isWhiteTurn && newPositionY == 7 &&  tooltoCoronationSymbol == whitePawnSymbol) {
     document.getElementById("a" + newPositionY + newPositionX).setAttribute("src", whiteKingToolSymbol);
   }
-  if (!isWhiteTurn && newPositionY == 0) {
+  if (!isWhiteTurn && newPositionY == 0 &&  tooltoCoronationSymbol == blackPawnSymbol) {
     document.getElementById("a" + newPositionY + newPositionX).setAttribute("src", blackKingToolSymbol);
   }
 }
@@ -795,3 +656,5 @@ function gameOverDeclaration() {
   document.getElementById("lastLine").innerText = "  Game Over !  " +
     (isWhiteTurn ? "White Player Won !" : "Black Player Won !");
 }
+
+
